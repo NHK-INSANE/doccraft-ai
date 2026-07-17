@@ -15,7 +15,10 @@ export default function Preview({ document }) {
 
   return (
     <div className="bg-gray-300 rounded-xl p-8 overflow-auto h-[730px]">
-      <div className="bg-white min-h-[850px] shadow-2xl mx-auto max-w-[800px]">
+      <div
+        id="document-preview"
+        className="bg-white min-h-[1123px] max-w-[794px] mx-auto shadow-2xl"
+      >
         <div className={current.className}>
           <h1 className="text-3xl font-bold mb-6 text-gray-800 border-b pb-3">
             {current.header}

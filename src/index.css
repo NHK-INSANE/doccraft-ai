@@ -6,3 +6,40 @@ body{
     font-family:Inter,sans-serif;
     background:#f3f4f6;
 }
+
+/* Override oklch colors for html2canvas compatibility */
+#document-preview {
+  background-color: #ffffff !important;
+  color: #1f2937 !important;
+}
+
+#document-preview h1, 
+#document-preview h2, 
+#document-preview h3, 
+#document-preview h4,
+#document-preview .title,
+#document-preview .header {
+  color: #111827 !important;
+  border-bottom-color: #e5e7eb !important;
+}
+
+#document-preview p, 
+#document-preview li, 
+#document-preview article,
+#document-preview span {
+  color: #374151 !important;
+}
+
+#document-preview code {
+  background-color: #f3f4f6 !important;
+  color: #e11d48 !important;
+}
+
+#document-preview blockquote {
+  border-left-color: #6366f1 !important;
+  color: #4b5563 !important;
+}
+
+#document-preview hr {
+  border-top-color: #e5e7eb !important;
+}

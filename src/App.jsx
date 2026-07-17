@@ -3,6 +3,7 @@ import Navbar from "./components/Navbar";
 import UploadBox from "./components/UploadBox";
 import TemplateSelector from "./components/TemplateSelector";
 import Toolbar from "./components/Toolbar";
+import ExportButtons from "./components/ExportButtons";
 import Editor from "./components/Editor";
 import Preview from "./components/Preview";
 
@@ -22,6 +23,8 @@ export default function App() {
         <TemplateSelector document={document} setDocument={setDocument} />
 
         <Toolbar document={document} setDocument={setDocument} />
+
+        <ExportButtons document={document} />
 
         <div className="grid grid-cols-2 gap-6 mt-6">
           <Editor document={document} setDocument={setDocument} />
