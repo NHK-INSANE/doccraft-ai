@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API = "http://localhost:5000/api/gemini";
+const API = "http://localhost:8080/api/gemini";
 
 export async function improveDocument(text, action, template) {
   const response = await axios.post(API, {
