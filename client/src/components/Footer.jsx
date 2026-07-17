@@ -1,7 +1,7 @@
 export default function Footer() {
   return (
-    <footer className="bg-white border-t py-6 text-center text-xs text-gray-400">
-      &copy; {new Date().getFullYear()} DocCraft AI. All rights reserved.
+    <footer className="text-center text-gray-500 py-8 border-t border-gray-200 mt-12 text-xs">
+      Built with ❤️ using React, Firebase, & Google Gemini
     </footer>
   );
 }

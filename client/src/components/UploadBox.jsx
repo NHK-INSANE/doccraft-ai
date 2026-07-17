@@ -1,4 +1,5 @@
 import { useDropzone } from "react-dropzone";
+import { UploadCloud } from "lucide-react";
 
 export default function UploadBox({ document, setDocument }) {
   const onDrop = (acceptedFiles) => {
@@ -26,15 +27,20 @@ export default function UploadBox({ document, setDocument }) {
   return (
     <div
       {...getRootProps()}
-      className="bg-white border-2 border-dashed border-gray-300 hover:border-blue-400 rounded-xl p-8 cursor-pointer text-center transition-colors"
+      className="bg-white border-2 border-dashed border-gray-250 hover:border-blue-500 rounded-2xl p-6 cursor-pointer text-center transition-all duration-300 hover:scale-101 hover:shadow-md flex flex-col items-center justify-center gap-2.5"
     >
       <input {...getInputProps()} />
-      <h2 className="font-bold text-xl text-gray-800">
-        Upload TXT or Markdown
-      </h2>
-      <p className="text-gray-500 mt-2">
-        Drag & Drop or Click Here
-      </p>
+      <div className="p-2.5 bg-blue-50 text-blue-600 rounded-full">
+        <UploadCloud size={24} />
+      </div>
+      <div>
+        <h2 className="font-bold text-base text-gray-850">
+          Upload TXT or Markdown
+        </h2>
+        <p className="text-xs text-gray-500 mt-1">
+          Drag & Drop or <span className="text-blue-600 font-semibold">Click to Browse</span>
+        </p>
+      </div>
     </div>
   );
 }
