@@ -1,10 +1,13 @@
-// Gemini API Integration placeholder
-export async function improveGrammar(text) {
-  console.log("Placeholder grammar improve for:", text);
-  return text;
-}
+import axios from "axios";
 
-export async function rewriteProfessional(text) {
-  console.log("Placeholder professional rewrite for:", text);
-  return text;
+const API = "http://localhost:5000/api/gemini";
+
+export async function improveDocument(text, action, template) {
+  const response = await axios.post(API, {
+    text,
+    action,
+    template,
+  });
+
+  return response.data.result;
 }
