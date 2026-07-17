@@ -1,34 +1,28 @@
 import { useState } from "react";
 import Navbar from "./components/Navbar";
 import UploadBox from "./components/UploadBox";
+import TemplateSelector from "./components/TemplateSelector";
 import Editor from "./components/Editor";
 import Preview from "./components/Preview";
 
 export default function App() {
-  // Structured document state to prepare for templates, titles and exports
-  const [doc, setDoc] = useState({
+  const [document, setDocument] = useState({
     text: "",
     template: "resume",
-    title: "",
   });
-
-  const setDocumentText = (text) => {
-    setDoc((prev) => ({ ...prev, text }));
-  };
 
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
 
       <main className="max-w-7xl mx-auto p-6">
-        <UploadBox setDocumentText={setDocumentText} />
+        <UploadBox document={document} setDocument={setDocument} />
+
+        <TemplateSelector document={document} setDocument={setDocument} />
 
         <div className="grid grid-cols-2 gap-6 mt-6">
-          <Editor
-            documentText={doc.text}
-            setDocumentText={setDocumentText}
-          />
-          <Preview documentText={doc.text} />
+          <Editor document={document} setDocument={setDocument} />
+          <Preview document={document} />
         </div>
       </main>
     </div>

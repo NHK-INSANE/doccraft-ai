@@ -1,13 +1,16 @@
 import { useDropzone } from "react-dropzone";
 
-export default function UploadBox({ setDocumentText }) {
+export default function UploadBox({ document, setDocument }) {
   const onDrop = (acceptedFiles) => {
     const file = acceptedFiles[0];
     if (!file) return;
 
     const reader = new FileReader();
     reader.onload = () => {
-      setDocumentText(reader.result);
+      setDocument({
+        ...document,
+        text: reader.result,
+      });
     };
     reader.readAsText(file);
   };
