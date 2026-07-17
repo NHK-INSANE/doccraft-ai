@@ -1,65 +1,66 @@
+import React from "react";
 import { FileText, Briefcase, FileSignature } from "lucide-react";
 
-export default function TemplateSelector({ document, setDocument }) {
+export default function TemplateSelector({ activeTemplate, setActiveTemplate }) {
   const templates = [
     {
       key: "resume",
-      label: "Resume",
-      description: "Professional CV Layout",
+      label: "Professional Resume",
+      tagline: "ATS Optimized",
       icon: FileText,
-      color: "border-blue-500 text-blue-600 bg-blue-50/10",
+      color: "from-blue-600 to-indigo-600 border-indigo-500/80 shadow-[0_0_15px_rgba(99,102,241,0.2)]",
     },
     {
       key: "letter",
       label: "Business Letter",
-      description: "Formal Corporate Letter",
+      tagline: "Formal Corporate",
       icon: Briefcase,
-      color: "border-purple-500 text-purple-600 bg-purple-50/10",
+      color: "from-purple-600 to-violet-600 border-violet-500/80 shadow-[0_0_15px_rgba(139,92,246,0.2)]",
     },
     {
       key: "report",
       label: "Project Report",
-      description: "Academic & Tech Report",
+      tagline: "Technical Paper",
       icon: FileSignature,
-      color: "border-green-500 text-green-600 bg-green-50/10",
+      color: "from-emerald-600 to-teal-600 border-teal-500/80 shadow-[0_0_15px_rgba(20,184,166,0.2)]",
     },
   ];
 
   return (
-    <div className="mt-6">
-      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-        Select Layout Template
+    <div className="bg-[#0b1021] border border-[#1b2342] rounded-2xl p-5 mb-6">
+      <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+        <span className="w-1.5 h-3 bg-violet-500 rounded-sm"></span>
+        Select Document Template
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {templates.map((tpl) => {
           const Icon = tpl.icon;
-          const isActive = document.template === tpl.key;
+          const isActive = activeTemplate === tpl.key;
           return (
             <button
               key={tpl.key}
-              onClick={() =>
-                setDocument({
-                  ...document,
-                  template: tpl.key,
-                })
-              }
-              className={`p-4 rounded-2xl border-2 text-left transition-all duration-300 hover:scale-102 cursor-pointer flex gap-4 items-start ${
+              onClick={() => setActiveTemplate(tpl.key)}
+              className={`p-4 rounded-xl border text-left transition-all duration-300 hover:translate-y-[-2px] cursor-pointer flex gap-3.5 items-center ${
                 isActive
-                  ? `${tpl.color} shadow-md border-blue-600`
-                  : "bg-white border-gray-200 hover:border-gray-300"
+                  ? `bg-gradient-to-br ${tpl.color} border-violet-500 text-white`
+                  : "bg-[#0f1632] border-[#1b2342] hover:border-gray-700 text-gray-300"
               }`}
             >
               <div
-                className={`p-2.5 rounded-xl ${
-                  isActive ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-500"
+                className={`p-2.5 rounded-lg flex items-center justify-center ${
+                  isActive ? "bg-white/15 text-white" : "bg-[#162049] text-gray-400"
                 }`}
               >
                 <Icon size={18} />
               </div>
               <div>
-                <h4 className="font-bold text-gray-800 text-sm">{tpl.label}</h4>
-                <p className="text-[11px] text-gray-500 mt-0.5 leading-tight">
-                  {tpl.description}
+                <h4 className="font-extrabold text-xs sm:text-sm tracking-wide leading-tight">
+                  {tpl.label}
+                </h4>
+                <p className={`text-[10px] mt-0.5 font-medium leading-none ${
+                  isActive ? "text-white/80" : "text-gray-500"
+                }`}>
+                  {tpl.tagline}
                 </p>
               </div>
             </button>
