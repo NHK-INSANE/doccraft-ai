@@ -1,7 +1,13 @@
 import { useState } from "react";
 import Navbar from "./components/Navbar";
+import Sidebar from "./components/Sidebar";
 import Editor from "./components/Editor";
 import Preview from "./components/Preview";
+
+// Import Templates
+import { resumeTemplate } from "./templates/resume";
+import { letterTemplate } from "./templates/letter";
+import { reportTemplate } from "./templates/report";
 
 const DEFAULT_MARKDOWN = `# Welcome to DocCraft AI! 👋
 
@@ -25,12 +31,68 @@ DocCraft AI is a powerful, real-time, AI-assisted document formatter and editor.
 function App() {
   const [content, setContent] = useState(DEFAULT_MARKDOWN);
   const [title, setTitle] = useState("Getting Started with DocCraft");
+  const [template, setTemplate] = useState("none");
+
+  // Track if content was manually changed to prevent loss
+  const confirmTemplateChange = () => {
+    return window.confirm(
+      "Switching templates will overwrite your current workspace content. Do you want to proceed?"
+    );
+  };
+
+  const handleSelectTemplate = (templateId) => {
+    // Alert user if switching and losing work
+    if (content.trim() !== "" && content !== DEFAULT_MARKDOWN) {
+      const currentTplMap = {
+        resume: resumeTemplate,
+        letter: letterTemplate,
+        report: reportTemplate,
+      };
+      const isCurrentTemplateMatch =
+        template !== "none" && content === currentTplMap[template];
+
+      if (!isCurrentTemplateMatch && !confirmTemplateChange()) {
+        return;
+      }
+    }
+
+    setTemplate(templateId);
+
+    if (templateId === "none") {
+      setContent("");
+      setTitle("Untitled Document");
+    } else if (templateId === "resume") {
+      setContent(resumeTemplate);
+      setTitle("Resume - Rohan Sharma");
+    } else if (templateId === "letter") {
+      setContent(letterTemplate);
+      setTitle("Formal Letter - Rohan Sharma");
+    } else if (templateId === "report") {
+      setContent(reportTemplate);
+      setTitle("Product Development Report");
+    }
+  };
+
+  const handleClearDocument = () => {
+    if (window.confirm("Are you sure you want to clear your current workspace?")) {
+      setContent("");
+      setTitle("Untitled Document");
+      setTemplate("none");
+    }
+  };
 
   const handleUpload = (fileContent, filename) => {
+    if (
+      content.trim() !== "" &&
+      content !== DEFAULT_MARKDOWN &&
+      !window.confirm("Uploading a new file will replace your current workspace. Proceed?")
+    ) {
+      return;
+    }
     setContent(fileContent);
-    // Remove extension from filename to set as title
     const nameWithoutExt = filename.replace(/\.[^/.]+$/, "");
     setTitle(nameWithoutExt);
+    setTemplate("none");
   };
 
   return (
@@ -48,19 +110,31 @@ function App() {
           </p>
         </div>
 
-        {/* Editor & Preview Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch flex-1">
-          <div className="flex flex-col h-full">
-            <Editor
-              content={content}
-              onChangeContent={setContent}
-              title={title}
-              onChangeTitle={setTitle}
-              onUpload={handleUpload}
+        {/* 3-Pane Dashboard Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-stretch flex-1">
+          {/* Sidebar - Templates Column */}
+          <div className="lg:col-span-1 flex flex-col">
+            <Sidebar
+              activeTemplate={template}
+              onSelectTemplate={handleSelectTemplate}
+              onClearDocument={handleClearDocument}
             />
           </div>
-          <div className="flex flex-col h-full">
-            <Preview content={content} title={title} />
+
+          {/* Editor and Preview Columns */}
+          <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+            <div className="flex flex-col h-full">
+              <Editor
+                content={content}
+                onChangeContent={setContent}
+                title={title}
+                onChangeTitle={setTitle}
+                onUpload={handleUpload}
+              />
+            </div>
+            <div className="flex flex-col h-full">
+              <Preview content={content} title={title} template={template} />
+            </div>
           </div>
         </div>
       </main>
