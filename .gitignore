@@ -1,5 +1,10 @@
 node_modules
 dist
+
+# All .env files (never commit secrets)
 .env
-server/.env
+.env.*
+!.env.example
+
+# Firebase cache
 .firebase
