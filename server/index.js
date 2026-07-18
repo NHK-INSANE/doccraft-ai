@@ -11,6 +11,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.get("/", (req, res) => {
+  res.json({ status: "ok", service: "DocCraft AI Backend" });
+});
+
 app.use("/api/gemini", geminiRoutes);
 
 const PORT = process.env.PORT || 8080;

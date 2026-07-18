@@ -24,7 +24,7 @@ export async function generate(prompt) {
   }
 
   const response = await ai.models.generateContent({
-    model: "gemini-3.5-flash",
+    model: "gemini-2.5-flash",
     contents: prompt,
   });
 
@@ -70,7 +70,7 @@ export async function generateJson(prompt) {
   }
 
   const response = await ai.models.generateContent({
-    model: "gemini-3.5-flash",
+    model: "gemini-2.5-flash",
     contents: prompt,
     config: {
       responseMimeType: "application/json",
