@@ -4,9 +4,12 @@
 
 ---
 
+> [!NOTE]
+> **Prototype Deployment Architecture**: This prototype is hosted entirely on **Firebase Hosting** and uses direct client-side requests to the Google Gemini API (`gemini-3.5-flash`). This setup enables a 100% free deployment without requiring credit card registration or billing setup (which Google Cloud Run requires to enable Cloud Build and Artifact Registry). The complete Node.js/Express backend is preserved in the [server/](file:///c:/Users/rohan/OneDrive/Desktop/PROJECT/doccraft-ai/server) folder as a reference for standard production deployments.
+
 ## 🚀 Live Demo & Staging Target
 - **Frontend Staging Target**: [https://doccraft-ai.web.app](https://doccraft-ai.web.app)
-- **Backend API Service**: Google Cloud Run Containerized Service (Port 8080)
+- **Backend API Service**: Bypassed for staging (Direct client-side API requests) / Express source in `server/`
 
 ---
 
