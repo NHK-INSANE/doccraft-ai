@@ -3,6 +3,66 @@ import axios from "axios";
 // Access the API Key from the Vite environment variables
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
+function looseJsonParse(text) {
+  let cleaned = text.trim();
+  
+  if (cleaned.startsWith("```")) {
+    cleaned = cleaned.replace(/^```(?:json)?\s*/i, "");
+    cleaned = cleaned.replace(/\s*```$/, "");
+  }
+  cleaned = cleaned.trim();
+
+  try {
+    return JSON.parse(cleaned);
+  } catch (initialError) {
+    console.warn("Standard JSON parse failed, attempting auto-recovery for truncated JSON...", initialError.message);
+    
+    // Auto-recovery 1: Append missing closing braces/brackets based on counts
+    let temp = cleaned;
+    const maxRetries = 15;
+    for (let i = 0; i < maxRetries; i++) {
+      const openCurlies = (temp.match(/\{/g) || []).length;
+      const closeCurlies = (temp.match(/\}/g) || []).length;
+      
+      const openSquares = (temp.match(/\[/g) || []).length;
+      const closeSquares = (temp.match(/\]/g) || []).length;
+      
+      if (openCurlies > closeCurlies) {
+        temp += "}";
+      } else if (openSquares > closeSquares) {
+        temp += "]";
+      } else {
+        break;
+      }
+      
+      try {
+        return JSON.parse(temp);
+      } catch (e) {
+        // Continue adding closing structures
+      }
+    }
+    
+    // Auto-recovery 2: Backtrack to the last valid closed structure boundary and trim trailing partials
+    let cur = cleaned;
+    while (cur.length > 10) {
+      const lastBrace = Math.max(cur.lastIndexOf("}"), cur.lastIndexOf("]"));
+      if (lastBrace === -1 || lastBrace === cur.length - 1) {
+        cur = cur.substring(0, cur.length - 1).trim();
+      } else {
+        cur = cur.substring(0, lastBrace + 1);
+      }
+      
+      try {
+        return JSON.parse(cur);
+      } catch (e) {
+        // Continue backtracking
+      }
+    }
+    
+    throw initialError;
+  }
+}
+
 export async function improveDocument(data, action, template, customPrompt = "") {
   // Check if API key is present and is not a placeholder
   const hasKey = GEMINI_API_KEY && 
@@ -105,13 +165,7 @@ Requirements:
     });
 
     const rawText = response.data.candidates[0].content.parts[0].text;
-    
-    let cleaned = rawText.trim();
-    if (cleaned.startsWith("```")) {
-      cleaned = cleaned.replace(/^```(?:json)?/, "").replace(/```$/, "").trim();
-    }
-    
-    return JSON.parse(cleaned);
+    return looseJsonParse(rawText);
   } catch (err) {
     console.error("Gemini API Error:", err);
     if (err.response?.data?.error?.message) {

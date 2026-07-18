@@ -214,9 +214,10 @@ export default function App() {
   };
 
   const handleAiAction = async (action, customPrompt = "") => {
+    let loadingToast = null;
     try {
       setLoading(true);
-      const loadingToast = toast.loading("Gemini is structuring your content...");
+      loadingToast = toast.loading("Gemini is structuring your content...");
       
       const updatedJson = await improveDocument(
         activeData,
@@ -226,12 +227,14 @@ export default function App() {
       );
 
       handleUpdateData(updatedJson);
-      toast.dismiss(loadingToast);
       toast.success("Document updated successfully by AI!");
     } catch (err) {
       console.error(err);
-      toast.error(err.response?.data?.error || "AI processing failed.");
+      toast.error(err.message || "AI processing failed.");
     } finally {
+      if (loadingToast) {
+        toast.dismiss(loadingToast);
+      }
       setLoading(false);
     }
   };
