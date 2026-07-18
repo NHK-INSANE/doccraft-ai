@@ -3,11 +3,14 @@ import Navbar from "./components/Navbar";
 import TemplateSelector from "./components/TemplateSelector";
 import Editor from "./components/Editor";
 import Preview from "./components/Preview";
+import ExportReadinessCard from "./components/ExportReadinessCard";
+import ExportSummaryModal from "./components/ExportSummaryModal";
 import ExportHistory from "./components/ExportHistory";
 import Footer from "./components/Footer";
 import toast, { Toaster } from "react-hot-toast";
 
 import { improveDocument } from "./services/gemini";
+import { getDiffs } from "./services/diff";
 import { exportPDF } from "./services/pdfExport";
 import { exportDOCX } from "./services/docExport";
 
@@ -108,6 +111,18 @@ export default function App() {
   const [activeTab, setActiveTab] = useState("content");
   const [zoom, setZoom] = useState(100);
   const [loading, setLoading] = useState(false);
+  const [analysisData, setAnalysisData] = useState({
+    resume: null,
+    letter: null,
+    report: null,
+  });
+  const activeAnalysis = analysisData[activeTemplate];
+  const [pendingSuggestions, setPendingSuggestions] = useState({
+    resume: null,
+    letter: null,
+    report: null,
+  });
+  const activePendingSuggestion = pendingSuggestions[activeTemplate];
 
   const [history, setHistory] = useState(() => {
     const saved = localStorage.getItem("export_history_v2");
@@ -156,6 +171,14 @@ export default function App() {
     };
     handleUpdateData(defaults[activeTemplate]);
     setStyles(defaultStyles);
+    setAnalysisData(prev => ({
+      ...prev,
+      [activeTemplate]: null
+    }));
+    setPendingSuggestions(prev => ({
+      ...prev,
+      [activeTemplate]: null
+    }));
     toast.success(`Reset ${activeTemplate} to default structure.`);
   };
 
@@ -213,21 +236,83 @@ export default function App() {
     }
   };
 
+  const handleAcceptSuggestion = () => {
+    if (!activePendingSuggestion) return;
+    handleUpdateData(activePendingSuggestion.suggestedData);
+    saveToHistory();
+    setPendingSuggestions(prev => ({
+      ...prev,
+      [activeTemplate]: null
+    }));
+    toast.success("AI changes applied successfully!");
+  };
+
+  const handleRejectSuggestion = () => {
+    setPendingSuggestions(prev => ({
+      ...prev,
+      [activeTemplate]: null
+    }));
+    toast.success("AI suggestion discarded.");
+  };
+
+  const handleResubmitSuggestion = (feedback) => {
+    if (!activePendingSuggestion) return;
+    const previousPrompt = activePendingSuggestion.customPrompt || "";
+    const action = activePendingSuggestion.action;
+    const refinedPrompt = previousPrompt 
+      ? `${previousPrompt}\nRefinement instruction: ${feedback}`
+      : feedback;
+    
+    setPendingSuggestions(prev => ({
+      ...prev,
+      [activeTemplate]: null
+    }));
+    
+    handleAiAction(action, refinedPrompt);
+  };
+
   const handleAiAction = async (action, customPrompt = "") => {
     let loadingToast = null;
     try {
       setLoading(true);
       loadingToast = toast.loading("Gemini is structuring your content...");
       
-      const updatedJson = await improveDocument(
+      const response = await improveDocument(
         activeData,
         action,
         activeTemplate,
         customPrompt
       );
 
-      handleUpdateData(updatedJson);
-      toast.success("Document updated successfully by AI!");
+      if (response && response.optimizedText) {
+        const diffs = getDiffs(activeData, response.optimizedText);
+
+        setPendingSuggestions(prev => ({
+          ...prev,
+          [activeTemplate]: {
+            originalData: JSON.parse(JSON.stringify(activeData)),
+            suggestedData: response.optimizedText,
+            diffs: diffs,
+            action: action,
+            customPrompt: customPrompt
+          }
+        }));
+
+        setAnalysisData(prev => ({
+          ...prev,
+          [activeTemplate]: {
+            analysis: response.analysis,
+            summary: response.summary,
+            improvements: response.improvements,
+            suggestions: response.suggestions
+          }
+        }));
+
+        toast.success("AI analysis report and suggested changes generated!");
+      } else {
+        handleUpdateData(response);
+        toast.success("Document updated successfully by AI!");
+      }
     } catch (err) {
       console.error(err);
       toast.error(err.message || "AI processing failed.");
@@ -261,6 +346,11 @@ export default function App() {
               activeTab={activeTab}
               setActiveTab={setActiveTab}
               onAiAction={handleAiAction}
+              analysis={activeAnalysis}
+              pendingSuggestion={activePendingSuggestion}
+              onAcceptSuggestion={handleAcceptSuggestion}
+              onRejectSuggestion={handleRejectSuggestion}
+              onResubmitSuggestion={handleResubmitSuggestion}
               loading={loading}
             />
 

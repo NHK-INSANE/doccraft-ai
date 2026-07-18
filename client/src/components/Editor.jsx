@@ -1,5 +1,5 @@
-import React from "react";
-import { Edit2, Palette, Sparkles, Plus, Trash2, Check } from "lucide-react";
+import React, { useState } from "react";
+import { Edit2, Palette, Sparkles, Plus, Trash2, Check, X, RotateCcw } from "lucide-react";
 
 export default function Editor({
   activeTemplate,
@@ -10,8 +10,22 @@ export default function Editor({
   activeTab,
   setActiveTab,
   onAiAction,
+  analysis,
+  pendingSuggestion,
+  onAcceptSuggestion,
+  onRejectSuggestion,
+  onResubmitSuggestion,
   loading,
 }) {
+  const [showRefinement, setShowRefinement] = useState(false);
+  const [refinementText, setRefinementText] = useState("");
+
+  const handleRefinementSubmit = (e) => {
+    e.preventDefault();
+    if (!refinementText.trim()) return;
+    onResubmitSuggestion(refinementText.trim());
+    setRefinementText("");
+  };
   // Helpers to update nested state arrays
   const updateArrayField = (arrayName, index, key, value) => {
     const list = [...(data[arrayName] || [])];
@@ -924,129 +938,415 @@ export default function Editor({
         {/* ================= AI COMPANION TAB ================= */}
         {activeTab === "ai" && (
           <div className="space-y-5">
-            {/* Explanation box */}
-            <div className="p-4 bg-violet-950/20 border border-violet-900/50 rounded-xl space-y-1.5">
-              <span className="text-[10px] font-extrabold text-violet-400 tracking-wider flex items-center gap-1.5">
-                <Sparkles size={12} /> ✨ AI COMPANION ACTIVE
-              </span>
-              <p className="text-[11px] text-gray-400 leading-normal">
-                Optimize and format your document dynamically using Google Gemini. The AI reads your structured layout and returns refined, formatted JSON results instantly.
-              </p>
-            </div>
+            {loading ? (
+              /* Step G: Skeleton Loading State */
+              <div className="space-y-5 animate-pulse">
+                <div className="p-4 bg-violet-950/10 border border-violet-900/30 rounded-xl flex items-center gap-3">
+                  <div className="w-4 h-4 border-2 border-violet-500/30 border-t-violet-500 rounded-full animate-spin"></div>
+                  <div className="h-3 bg-[#1b2342] rounded-full w-2/3"></div>
+                </div>
 
-            {/* AI Action Quick Buttons */}
-            <div className="space-y-3">
-              <h4 className="text-[10px] font-black tracking-widest text-violet-400 uppercase">
-                Quick Actions
-              </h4>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  disabled={loading}
-                  onClick={() => onAiAction("grammar")}
-                  className="py-2.5 px-3 bg-[#0f1632] hover:bg-[#162049] border border-[#1b2342] text-left text-xs font-bold rounded-xl text-gray-200 hover:text-white flex flex-col justify-center cursor-pointer transition disabled:opacity-50"
-                >
-                  <span className="text-violet-400">✨ Improve Grammar</span>
-                  <span className="text-[9px] text-gray-500 font-medium mt-0.5 leading-none">Fix typos & syntax</span>
-                </button>
-                
-                <button
-                  type="button"
-                  disabled={loading}
-                  onClick={() => onAiAction("rewrite")}
-                  className="py-2.5 px-3 bg-[#0f1632] hover:bg-[#162049] border border-[#1b2342] text-left text-xs font-bold rounded-xl text-gray-200 hover:text-white flex flex-col justify-center cursor-pointer transition disabled:opacity-50"
-                >
-                  <span className="text-violet-400">✨ Professional Polish</span>
-                  <span className="text-[9px] text-gray-500 font-medium mt-0.5 leading-none">Formal & articulate</span>
-                </button>
-                
-                <button
-                  type="button"
-                  disabled={loading}
-                  onClick={() => onAiAction("summary")}
-                  className="py-2.5 px-3 bg-[#0f1632] hover:bg-[#162049] border border-[#1b2342] text-left text-xs font-bold rounded-xl text-gray-200 hover:text-white flex flex-col justify-center cursor-pointer transition disabled:opacity-50"
-                >
-                  <span className="text-violet-400">✨ Auto-Generate Summary</span>
-                  <span className="text-[9px] text-gray-500 font-medium mt-0.5 leading-none">Create a strong hook</span>
-                </button>
-                
-                <button
-                  type="button"
-                  disabled={loading}
-                  onClick={() => onAiAction("fix_formatting")}
-                  className="py-2.5 px-3 bg-[#0f1632] hover:bg-[#162049] border border-[#1b2342] text-left text-xs font-bold rounded-xl text-gray-200 hover:text-white flex flex-col justify-center cursor-pointer transition disabled:opacity-50"
-                >
-                  <span className="text-violet-400">✨ Clean Formatting</span>
-                  <span className="text-[9px] text-gray-500 font-medium mt-0.5 leading-none">Review spacing & lists</span>
-                </button>
+                <div className="bg-[#0d1532] border border-[#1b2342] rounded-xl p-4 space-y-4">
+                  <div className="h-3 bg-[#1b2342] rounded-full w-1/3"></div>
+                  <div className="space-y-2">
+                    <div className="h-5 bg-[#162049] rounded-lg w-full"></div>
+                    <div className="h-2 bg-[#162049] rounded-full w-full"></div>
+                    <div className="h-2 bg-[#162049] rounded-full w-full"></div>
+                    <div className="h-2 bg-[#162049] rounded-full w-full"></div>
+                  </div>
+                </div>
 
-                {activeTemplate === "resume" && (
-                  <button
-                    type="button"
-                    disabled={loading}
-                    onClick={() => onAiAction("ats")}
-                    className="py-2.5 px-3 bg-[#0f1632] hover:bg-[#162049] border border-[#1b2342] text-left text-xs font-bold rounded-xl text-gray-200 hover:text-white flex flex-col justify-center cursor-pointer col-span-2 transition disabled:opacity-50"
-                  >
-                    <span className="text-emerald-400">📈 ATS Keyword Optimization</span>
-                    <span className="text-[9px] text-gray-500 font-medium mt-0.5 leading-none">Inject standard sector terminology & action phrases</span>
-                  </button>
-                )}
-
-                {activeTemplate === "report" && (
-                  <button
-                    type="button"
-                    disabled={loading}
-                    onClick={() => onAiAction("tone_academic")}
-                    className="py-2.5 px-3 bg-[#0f1632] hover:bg-[#162049] border border-[#1b2342] text-left text-xs font-bold rounded-xl text-gray-200 hover:text-white flex flex-col justify-center cursor-pointer col-span-2 transition disabled:opacity-50"
-                  >
-                    <span className="text-blue-400">🎓 Academic / Scholarly Tone</span>
-                    <span className="text-[9px] text-gray-500 font-medium mt-0.5 leading-none">Rewrite sections for scientific or corporate report structures</span>
-                  </button>
-                )}
-
-                {activeTemplate === "letter" && (
-                  <button
-                    type="button"
-                    disabled={loading}
-                    onClick={() => onAiAction("tone_business")}
-                    className="py-2.5 px-3 bg-[#0f1632] hover:bg-[#162049] border border-[#1b2342] text-left text-xs font-bold rounded-xl text-gray-200 hover:text-white flex flex-col justify-center cursor-pointer col-span-2 transition disabled:opacity-50"
-                  >
-                    <span className="text-[#a855f7]">💼 Corporate Business Tone</span>
-                    <span className="text-[9px] text-gray-500 font-medium mt-0.5 leading-none">Polish letter content for formal business agreements & requests</span>
-                  </button>
-                )}
+                <div className="bg-[#0d1532] border border-[#1b2342] rounded-xl p-4 space-y-3">
+                  <div className="h-3 bg-[#1b2342] rounded-full w-1/4"></div>
+                  <div className="space-y-2">
+                    <div className="h-2 bg-[#162049] rounded-full w-full"></div>
+                    <div className="h-2 bg-[#162049] rounded-full w-5/6"></div>
+                    <div className="h-2 bg-[#162049] rounded-full w-4/5"></div>
+                  </div>
+                </div>
               </div>
-            </div>
+            ) : (
+              <>
+                {/* Explanation Box and Step F: Quality Badge */}
+                <div className="p-4 bg-violet-950/20 border border-violet-900/50 rounded-xl flex items-center justify-between gap-4">
+                  <div className="space-y-1.5 flex-1">
+                    <span className="text-[10px] font-extrabold text-violet-400 tracking-wider flex items-center gap-1.5">
+                      <Sparkles size={12} /> ✨ AI COMPANION ACTIVE
+                    </span>
+                    <p className="text-[11px] text-gray-400 leading-normal">
+                      Optimize and format your document dynamically using Google Gemini. The AI reads your structured layout and returns refined, formatted JSON results instantly.
+                    </p>
+                  </div>
 
-            {/* Custom Prompt Box */}
-            <div className="space-y-3">
-              <h4 className="text-[10px] font-black tracking-widest text-violet-400 uppercase">
-                Custom Instructions
-              </h4>
-              <form onSubmit={handleCustomPromptSubmit} className="space-y-3">
-                <textarea
-                  name="customPrompt"
-                  rows={3}
-                  disabled={loading}
-                  className="w-full bg-[#0f1632] border border-[#1b2342] rounded-xl p-4 text-xs text-white focus:outline-none focus:border-violet-500 transition duration-150 resize-none disabled:opacity-50"
-                  placeholder="e.g., 'Rewrite the work experience at TechNexus to sound more leadership-focused' or 'Translate this letter into French'..."
-                />
-                <button
-                  type="submit"
-                  disabled={loading || activeTab !== "ai"}
-                  className="w-full py-3 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white rounded-xl text-xs font-extrabold shadow-md tracking-wider flex items-center justify-center gap-2 cursor-pointer transition duration-200 disabled:opacity-50"
-                >
-                  {loading ? (
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  ) : (
-                    <>
+                  {analysis && (
+                    <div className="flex flex-col items-center justify-center border border-[#1b2342] bg-[#0d1532] px-3.5 py-2 rounded-xl text-center min-w-[80px]">
+                      <span className="text-[8px] font-extrabold text-gray-500 uppercase tracking-widest leading-none">Quality</span>
+                      <span className={`text-base font-black my-1 leading-none ${
+                        analysis.analysis.overall >= 90 ? "text-emerald-400" :
+                        analysis.analysis.overall >= 75 ? "text-amber-400" : "text-rose-400"
+                      }`}>
+                        {analysis.analysis.overall}%
+                      </span>
+                      <span className={`text-[8px] font-black uppercase tracking-wider leading-none ${
+                        analysis.analysis.overall >= 90 ? "text-emerald-500" :
+                        analysis.analysis.overall >= 75 ? "text-amber-500" : "text-rose-500"
+                      }`}>
+                        {analysis.analysis.overall >= 90 ? "Excellent" :
+                         analysis.analysis.overall >= 75 ? "Good" : "Needs Work"}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Step 2: AI Change Review Panel */}
+                {pendingSuggestion && (
+                  <div className="bg-[#0d1532] border border-[#1b2342] rounded-xl p-4 space-y-4">
+                    <div className="flex items-center justify-between border-b border-[#1b2342] pb-2">
+                      <span className="text-[10px] font-black tracking-widest text-[#a855f7] uppercase flex items-center gap-1.5">
+                        <Sparkles size={12} className="text-violet-400" /> ✨ AI Suggested Changes
+                      </span>
+                      {pendingSuggestion.diffs.length > 0 && (
+                        <span className="text-[8px] bg-violet-600/20 text-violet-300 font-bold px-2 py-0.5 rounded-full border border-violet-500/25">
+                          {pendingSuggestion.diffs.length} change{pendingSuggestion.diffs.length > 1 ? "s" : ""}
+                        </span>
+                      )}
+                    </div>
+
+                    {pendingSuggestion.diffs.length === 0 ? (
+                      <div className="text-center py-4 space-y-1">
+                        <p className="text-xs text-gray-400 font-medium">No layout or text updates recommended.</p>
+                        <p className="text-[10px] text-gray-500 leading-normal">Your document is already highly optimized for the requested action!</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4 max-h-[300px] overflow-y-auto custom-scrollbar pr-1">
+                        {pendingSuggestion.diffs.map((diff, idx) => (
+                          <div key={idx} className="space-y-2 border-b border-[#1b2342]/40 pb-3 last:border-b-0 last:pb-0">
+                            <span className="text-[9px] font-extrabold text-violet-400 uppercase tracking-wider block">
+                              {diff.label}
+                            </span>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                              {/* Original */}
+                              <div className="bg-[#0b1021] border border-[#1b2342]/50 p-2.5 rounded-lg">
+                                <span className="text-[8px] text-gray-500 uppercase tracking-widest block mb-1 font-bold">Original</span>
+                                <p className="text-[11px] text-gray-400 leading-relaxed break-words line-through decoration-rose-500/30">
+                                  {diff.original}
+                                </p>
+                              </div>
+                              {/* Suggested */}
+                              <div className="bg-emerald-950/10 border border-emerald-900/30 p-2.5 rounded-lg">
+                                <span className="text-[8px] text-emerald-400 uppercase tracking-widest block mb-1 font-bold">Suggested</span>
+                                <p className="text-[11px] text-emerald-200 leading-relaxed break-words bg-emerald-500/10 px-1 py-0.5 rounded-sm">
+                                  {diff.suggested}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Actions Toolbar */}
+                    <div className="flex gap-2.5">
+                      <button
+                        type="button"
+                        onClick={onAcceptSuggestion}
+                        className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 cursor-pointer transition shadow-md"
+                      >
+                        <Check size={14} /> Apply Changes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={onRejectSuggestion}
+                        className="flex-1 py-2.5 bg-[#0b1021] hover:bg-[#162049] border border-[#1b2342] text-gray-400 hover:text-white rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 cursor-pointer transition"
+                      >
+                        <X size={14} /> Keep Original
+                      </button>
+                    </div>
+
+                    {/* Conversational Refinement - Ask Gemini Again */}
+                    <div className="border-t border-[#1b2342]/50 pt-3.5 space-y-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowRefinement(!showRefinement)}
+                        className="text-[10px] text-gray-500 hover:text-violet-400 font-extrabold tracking-wider flex items-center gap-1.5 transition uppercase cursor-pointer"
+                      >
+                        <RotateCcw size={11} className={showRefinement ? "rotate-90 duration-200" : ""} /> 
+                        {showRefinement ? "Hide Refinement Option" : "🔄 Ask Gemini Again / Refine Output"}
+                      </button>
+
+                      {showRefinement && (
+                        <form onSubmit={handleRefinementSubmit} className="space-y-2.5">
+                          <textarea
+                            rows={2}
+                            value={refinementText}
+                            onChange={(e) => setRefinementText(e.target.value)}
+                            className="w-full bg-[#0f1632] border border-[#1b2342] rounded-xl p-3 text-xs text-white focus:outline-none focus:border-violet-500 transition duration-150 resize-none"
+                            placeholder="Tell Gemini how to adjust this suggestion (e.g. 'make it shorter', 'make it sound more technical')..."
+                          />
+                          <button
+                            type="submit"
+                            disabled={!refinementText.trim()}
+                            className="w-full py-2 bg-violet-600/20 hover:bg-violet-600 text-violet-300 hover:text-white border border-violet-500/30 rounded-xl text-xs font-bold transition duration-200 disabled:opacity-50 cursor-pointer"
+                          >
+                            Resubmit with Feedback
+                          </button>
+                        </form>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Step C: AI Analysis Scores Dashboard */}
+                {analysis && (
+                  <div className="bg-[#0d1532] border border-[#1b2342] rounded-xl p-4 space-y-4">
+                    <div className="flex items-center justify-between border-b border-[#1b2342] pb-2">
+                      <span className="text-[10px] font-black tracking-widest text-violet-400 uppercase">
+                        📊 AI Document Analysis
+                      </span>
+                      <span className="text-[9px] text-gray-500 font-bold uppercase tracking-wider">
+                        Live Score
+                      </span>
+                    </div>
+                    
+                    <div className="space-y-3.5">
+                      {/* Overall Metric */}
+                      <div className="flex justify-between items-center bg-[#0b1021]/50 p-2.5 rounded-lg border border-[#1b2342]">
+                        <span className="text-xs font-bold text-gray-300">Overall Score</span>
+                        <span className="text-sm font-black text-violet-400">{analysis.analysis.overall}%</span>
+                      </div>
+                      
+                      {/* Grammar */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-[10px] font-bold text-gray-400">
+                          <span>Grammar & Spelling</span>
+                          <span className="text-violet-300">{analysis.analysis.grammar}%</span>
+                        </div>
+                        <div className="h-1.5 bg-[#0b1021] rounded-full overflow-hidden border border-[#1b2342]/40">
+                          <div className="h-full bg-gradient-to-r from-violet-600 to-indigo-500 rounded-full" style={{ width: `${analysis.analysis.grammar}%` }}></div>
+                        </div>
+                      </div>
+                      
+                      {/* Tone */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-[10px] font-bold text-gray-400">
+                          <span>Professional Tone</span>
+                          <span className="text-violet-300">{analysis.analysis.tone}%</span>
+                        </div>
+                        <div className="h-1.5 bg-[#0b1021] rounded-full overflow-hidden border border-[#1b2342]/40">
+                          <div className="h-full bg-gradient-to-r from-violet-600 to-indigo-500 rounded-full" style={{ width: `${analysis.analysis.tone}%` }}></div>
+                        </div>
+                      </div>
+                      
+                      {/* ATS */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-[10px] font-bold text-gray-400">
+                          <span>ATS Compatibility</span>
+                          <span className="text-violet-300">{analysis.analysis.ats}%</span>
+                        </div>
+                        <div className="h-1.5 bg-[#0b1021] rounded-full overflow-hidden border border-[#1b2342]/40">
+                          <div className="h-full bg-gradient-to-r from-violet-600 to-indigo-500 rounded-full" style={{ width: `${analysis.analysis.ats}%` }}></div>
+                        </div>
+                      </div>
+                      
+                      {/* Readability */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-[10px] font-bold text-gray-400">
+                          <span>Readability</span>
+                          <span className="text-violet-300">{analysis.analysis.readability}%</span>
+                        </div>
+                        <div className="h-1.5 bg-[#0b1021] rounded-full overflow-hidden border border-[#1b2342]/40">
+                          <div className="h-full bg-gradient-to-r from-violet-600 to-indigo-500 rounded-full" style={{ width: `${analysis.analysis.readability}%` }}></div>
+                        </div>
+                      </div>
+
+                      {/* Formatting */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-[10px] font-bold text-gray-400">
+                          <span>Formatting & Structure</span>
+                          <span className="text-violet-300">{analysis.analysis.formatting}%</span>
+                        </div>
+                        <div className="h-1.5 bg-[#0b1021] rounded-full overflow-hidden border border-[#1b2342]/40">
+                          <div className="h-full bg-gradient-to-r from-violet-600 to-indigo-500 rounded-full" style={{ width: `${analysis.analysis.formatting}%` }}></div>
+                        </div>
+                      </div>
+                      
+                      {/* Confidence & Time Indicators */}
+                      <div className="grid grid-cols-3 gap-2.5 pt-1.5">
+                        <div className="bg-[#0b1021]/50 border border-[#1b2342] p-2 rounded-xl text-center">
+                          <span className="text-[8px] text-gray-500 uppercase tracking-wider block font-bold leading-none">Confidence</span>
+                          <span className="text-xs font-black text-emerald-400 mt-1 block">{analysis.analysis.confidence}%</span>
+                        </div>
+                        <div className="bg-[#0b1021]/50 border border-[#1b2342] p-2 rounded-xl text-center">
+                          <span className="text-[8px] text-gray-500 uppercase tracking-wider block font-bold leading-none">Read Time</span>
+                          <span className="text-xs font-black text-sky-400 mt-1 block">{analysis.analysis.readingTime}</span>
+                        </div>
+                        <div className="bg-[#0b1021]/50 border border-[#1b2342] p-2 rounded-xl text-center">
+                          <span className="text-[8px] text-gray-500 uppercase tracking-wider block font-bold leading-none">Template</span>
+                          <span className="text-xs font-black text-indigo-400 mt-1 block capitalize">{analysis.analysis.template}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step D: Improvements Card */}
+                {analysis && analysis.improvements && analysis.improvements.length > 0 && (
+                  <div className="bg-[#0d1532] border border-[#1b2342] rounded-xl p-4 space-y-3">
+                    <h4 className="text-[10px] font-black tracking-widest text-emerald-400 uppercase flex items-center gap-1.5">
+                      ✨ Improvements Made
+                    </h4>
+                    <div className="space-y-2">
+                      {analysis.improvements.map((imp, idx) => (
+                        <div key={idx} className="flex items-start gap-2.5 text-xs text-gray-300">
+                          <span className="text-emerald-400 mt-0.5">
+                            <Check size={12} strokeWidth={3} className="bg-emerald-500/10 rounded-full p-0.5 w-4 h-4 flex items-center justify-center" />
+                          </span>
+                          <span className="leading-snug">{imp}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Step E: Suggestions Card */}
+                {analysis && analysis.suggestions && analysis.suggestions.length > 0 && (
+                  <div className="bg-[#0d1532] border border-[#1b2342] rounded-xl p-4 space-y-3">
+                    <h4 className="text-[10px] font-black tracking-widest text-amber-500 uppercase">
+                      ⚠ AI Suggestions
+                    </h4>
+                    <div className="space-y-3.5 divide-y divide-[#1b2342]/40">
+                      {analysis.suggestions.map((sug, idx) => (
+                        <div key={idx} className={`space-y-1.5 ${idx > 0 ? "pt-3.5" : ""}`}>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-xs font-bold text-gray-200">{sug.title}</span>
+                            <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full border tracking-wide ${
+                              sug.severity === "High" 
+                                ? "bg-rose-500/10 border-rose-500/30 text-rose-400" 
+                                : sug.severity === "Medium"
+                                ? "bg-amber-500/10 border-amber-500/30 text-amber-400"
+                                : "bg-sky-500/10 border-sky-500/30 text-sky-400"
+                            }`}>
+                              {sug.severity}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-gray-400 leading-normal pl-0.5">
+                            <span className="text-gray-500">Solution:</span> {sug.solution}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* AI Action Quick Buttons */}
+                <div className="space-y-3">
+                  <h4 className="text-[10px] font-black tracking-widest text-violet-400 uppercase">
+                    Quick Actions
+                  </h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      disabled={loading}
+                      onClick={() => onAiAction("grammar")}
+                      className="py-2.5 px-3 bg-[#0f1632] hover:bg-[#162049] border border-[#1b2342] text-left text-xs font-bold rounded-xl text-gray-200 hover:text-white flex flex-col justify-center cursor-pointer transition disabled:opacity-50"
+                    >
+                      <span className="text-violet-400">✨ Improve Grammar</span>
+                      <span className="text-[9px] text-gray-500 font-medium mt-0.5 leading-none">Fix typos & syntax</span>
+                    </button>
+                    
+                    <button
+                      type="button"
+                      disabled={loading}
+                      onClick={() => onAiAction("rewrite")}
+                      className="py-2.5 px-3 bg-[#0f1632] hover:bg-[#162049] border border-[#1b2342] text-left text-xs font-bold rounded-xl text-gray-200 hover:text-white flex flex-col justify-center cursor-pointer transition disabled:opacity-50"
+                    >
+                      <span className="text-violet-400">✨ Professional Polish</span>
+                      <span className="text-[9px] text-gray-500 font-medium mt-0.5 leading-none">Formal & articulate</span>
+                    </button>
+                    
+                    <button
+                      type="button"
+                      disabled={loading}
+                      onClick={() => onAiAction("summary")}
+                      className="py-2.5 px-3 bg-[#0f1632] hover:bg-[#162049] border border-[#1b2342] text-left text-xs font-bold rounded-xl text-gray-200 hover:text-white flex flex-col justify-center cursor-pointer transition disabled:opacity-50"
+                    >
+                      <span className="text-violet-400">✨ Auto-Generate Summary</span>
+                      <span className="text-[9px] text-gray-500 font-medium mt-0.5 leading-none">Create a strong hook</span>
+                    </button>
+                    
+                    <button
+                      type="button"
+                      disabled={loading}
+                      onClick={() => onAiAction("fix_formatting")}
+                      className="py-2.5 px-3 bg-[#0f1632] hover:bg-[#162049] border border-[#1b2342] text-left text-xs font-bold rounded-xl text-gray-200 hover:text-white flex flex-col justify-center cursor-pointer transition disabled:opacity-50"
+                    >
+                      <span className="text-violet-400">✨ Clean Formatting</span>
+                      <span className="text-[9px] text-gray-500 font-medium mt-0.5 leading-none">Review spacing & lists</span>
+                    </button>
+
+                    {activeTemplate === "resume" && (
+                      <button
+                        type="button"
+                        disabled={loading}
+                        onClick={() => onAiAction("ats")}
+                        className="py-2.5 px-3 bg-[#0f1632] hover:bg-[#162049] border border-[#1b2342] text-left text-xs font-bold rounded-xl text-gray-200 hover:text-white flex flex-col justify-center cursor-pointer col-span-2 transition disabled:opacity-50"
+                      >
+                        <span className="text-emerald-400">📈 ATS Keyword Optimization</span>
+                        <span className="text-[9px] text-gray-500 font-medium mt-0.5 leading-none">Inject standard sector terminology & action phrases</span>
+                      </button>
+                    )}
+
+                    {activeTemplate === "report" && (
+                      <button
+                        type="button"
+                        disabled={loading}
+                        onClick={() => onAiAction("tone_academic")}
+                        className="py-2.5 px-3 bg-[#0f1632] hover:bg-[#162049] border border-[#1b2342] text-left text-xs font-bold rounded-xl text-gray-200 hover:text-white flex flex-col justify-center cursor-pointer col-span-2 transition disabled:opacity-50"
+                      >
+                        <span className="text-blue-400">🎓 Academic / Scholarly Tone</span>
+                        <span className="text-[9px] text-gray-500 font-medium mt-0.5 leading-none">Rewrite sections for scientific or corporate report structures</span>
+                      </button>
+                    )}
+
+                    {activeTemplate === "letter" && (
+                      <button
+                        type="button"
+                        disabled={loading}
+                        onClick={() => onAiAction("tone_business")}
+                        className="py-2.5 px-3 bg-[#0f1632] hover:bg-[#162049] border border-[#1b2342] text-left text-xs font-bold rounded-xl text-gray-200 hover:text-white flex flex-col justify-center cursor-pointer col-span-2 transition disabled:opacity-50"
+                      >
+                        <span className="text-[#a855f7]">💼 Corporate Business Tone</span>
+                        <span className="text-[9px] text-gray-500 font-medium mt-0.5 leading-none">Polish letter content for formal business agreements & requests</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Custom Prompt Box */}
+                <div className="space-y-3">
+                  <h4 className="text-[10px] font-black tracking-widest text-violet-400 uppercase">
+                    Custom Instructions
+                  </h4>
+                  <form onSubmit={handleCustomPromptSubmit} className="space-y-3">
+                    <textarea
+                      name="customPrompt"
+                      rows={3}
+                      disabled={loading}
+                      className="w-full bg-[#0f1632] border border-[#1b2342] rounded-xl p-4 text-xs text-white focus:outline-none focus:border-violet-500 transition duration-150 resize-none disabled:opacity-50"
+                      placeholder="e.g., 'Rewrite the work experience at TechNexus to sound more leadership-focused' or 'Translate this letter into French'..."
+                    />
+                    <button
+                      type="submit"
+                      disabled={loading || activeTab !== "ai"}
+                      className="w-full py-3 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white rounded-xl text-xs font-extrabold shadow-md tracking-wider flex items-center justify-center gap-2 cursor-pointer transition duration-200 disabled:opacity-50"
+                    >
                       <Sparkles size={13} />
                       Submit to Gemini
-                    </>
-                  )}
-                </button>
-              </form>
-            </div>
+                    </button>
+                  </form>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>

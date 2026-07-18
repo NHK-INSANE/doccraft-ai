@@ -74,26 +74,26 @@ export async function improveDocument(data, action, template, customPrompt = "")
     console.warn("VITE_GEMINI_API_KEY is not configured. Running in client-side Mock Mode.");
     
     // Deep clone the input data to avoid mutating original state directly
-    const mockResult = JSON.parse(JSON.stringify(data));
+    const mockOptimized = JSON.parse(JSON.stringify(data));
     
     // Apply dummy optimizations to show the workflow in demo/mock mode
-    if (mockResult.summary) {
-      mockResult.summary = "[AI Optimized (Demo Mode)] " + mockResult.summary;
-    } else if (mockResult.body) {
-      mockResult.body = "[AI Optimized (Demo Mode)] " + mockResult.body;
-    } else if (mockResult.abstract) {
-      mockResult.abstract = "[AI Optimized (Demo Mode)] " + mockResult.abstract;
+    if (mockOptimized.summary) {
+      mockOptimized.summary = "[AI Optimized (Demo Mode)] " + mockOptimized.summary;
+    } else if (mockOptimized.body) {
+      mockOptimized.body = "[AI Optimized (Demo Mode)] " + mockOptimized.body;
+    } else if (mockOptimized.abstract) {
+      mockOptimized.abstract = "[AI Optimized (Demo Mode)] " + mockOptimized.abstract;
     }
     
-    if (mockResult.experience && mockResult.experience.length > 0) {
-      mockResult.experience.forEach(exp => {
+    if (mockOptimized.experience && mockOptimized.experience.length > 0) {
+      mockOptimized.experience.forEach(exp => {
         if (exp.description) {
           exp.description = "[AI Refined (Demo Mode)] " + exp.description;
         }
       });
     }
-    if (mockResult.sections && mockResult.sections.length > 0) {
-      mockResult.sections.forEach(sec => {
+    if (mockOptimized.sections && mockOptimized.sections.length > 0) {
+      mockOptimized.sections.forEach(sec => {
         if (sec.content) {
           sec.content = "[AI Refined (Demo Mode)] " + sec.content;
         }
@@ -102,7 +102,39 @@ export async function improveDocument(data, action, template, customPrompt = "")
     
     // Simulate a brief network delay
     await new Promise(resolve => setTimeout(resolve, 800));
-    return mockResult;
+    
+    return {
+      analysis: {
+        overall: 88,
+        grammar: 92,
+        tone: 85,
+        formatting: 90,
+        readability: 89,
+        ats: 80,
+        confidence: 95,
+        readingTime: "2 min",
+        template: template
+      },
+      summary: "Document is well-structured overall. Suggestions include highlighting measurable metrics and certificates.",
+      improvements: [
+        "Corrected grammar and active verbs",
+        "Refined tone for template style",
+        "Optimized layout spacing"
+      ],
+      suggestions: [
+        {
+          severity: "Medium",
+          title: "Weak professional summary",
+          solution: "Mention measurable achievements or key metrics of success."
+        },
+        {
+          severity: "Low",
+          title: "Missing certifications",
+          solution: "Add relevant certifications to bolster resume authority."
+        }
+      ],
+      optimizedText: mockOptimized
+    };
   }
 
   // Map user actions to descriptions
@@ -133,18 +165,50 @@ export async function improveDocument(data, action, template, customPrompt = "")
       actionDescription = action ? `Transform the content according to: ${action}` : "Improve the overall quality of the text.";
   }
 
-  const prompt = `You are an expert AI document optimizer. Your task is to perform this editorial action: "${actionDescription}".
+  const prompt = `You are an AI Document Assistant.
+Analyze the provided document, optimize it, and return a complete AI analysis report.
+
+Your task is to perform this editorial action on the document content: "${actionDescription}".
 ${customPrompt ? `Additional User Instructions: "${customPrompt}"` : ""}
 
-Here is the document type: ${template}
+Here is the document type/template style: ${template}
 Here is the current document JSON data:
 ${JSON.stringify(data, null, 2)}
 
 Requirements:
-1. Update only the relevant text fields (like summary, experience descriptions, letter body, sections text, or abstract). Do not change the JSON structure or delete any keys.
-2. Maintain the integrity of contact details, dates, names, or websites, unless explicitly requested to change them.
-3. You MUST return ONLY a valid JSON object matching the input schema.
-4. Do not wrap the JSON output in markdown formatting (like \`\`\`json). Return the raw JSON string directly.`;
+1. Review the document and generate an overall document analysis.
+2. In the "optimizedText" key, provide the optimized/updated document JSON structure. Update only the relevant text fields (like summary, experience descriptions, letter body, sections text, or abstract). Do not change the JSON structure or delete any keys. Maintain the integrity of contact details, dates, names, or websites, unless explicitly requested to change them.
+3. You MUST return ONLY a valid JSON object matching this schema:
+{
+  "analysis": {
+    "overall": 0-100,
+    "grammar": 0-100,
+    "tone": 0-100,
+    "formatting": 0-100,
+    "readability": 0-100,
+    "ats": 0-100,
+    "confidence": 0-100,
+    "readingTime": "e.g., 2 min",
+    "template": "${template}"
+  },
+  "summary": "Brief overall assessment of document health and optimizations.",
+  "improvements": [
+    "Short description of a specific improvement made"
+  ],
+  "suggestions": [
+    {
+      "severity": "High" | "Medium" | "Low",
+      "title": "Short title of suggestion",
+      "solution": "Actionable step to fix the issue"
+    }
+  ],
+  "optimizedText": <the optimized/updated document JSON matching the input structure of the document data>
+}
+
+Return ONLY valid JSON.
+No markdown wrappers.
+No explanation.
+No code blocks.`;
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${GEMINI_API_KEY}`;
   
